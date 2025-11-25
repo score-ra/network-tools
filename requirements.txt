@@ -1,0 +1,21 @@
+# Network Tools - Dependencies
+# Python 3.11+
+
+# Core dependencies
+pyyaml>=6.0
+click>=8.1.0
+
+# Testing
+pytest>=7.4
+pytest-cov>=4.1
+pytest-mock>=3.11
+
+# Code quality
+black>=23.0
+flake8>=6.0
+mypy>=1.5
+
+# Network-specific dependencies (add as needed)
+# requests>=2.31
+# scapy>=2.5
+# python-nmap>=0.7
