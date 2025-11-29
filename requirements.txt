@@ -4,18 +4,24 @@
 # Core dependencies
 pyyaml>=6.0
 click>=8.1.0
+rich>=13.0                # CLI formatting and progress bars
+
+# Database
+psycopg[binary]>=3.1      # PostgreSQL adapter (psycopg3)
+
+# Network scanning
+scapy>=2.5                # ARP/ICMP scanning
 
 # Testing
 pytest>=7.4
 pytest-cov>=4.1
 pytest-mock>=3.11
+pytest-asyncio>=0.21      # Async test support
 
 # Code quality
 black>=23.0
 flake8>=6.0
 mypy>=1.5
 
-# Network-specific dependencies (add as needed)
-# requests>=2.31
-# scapy>=2.5
-# python-nmap>=0.7
+# Type stubs
+types-PyYAML>=6.0

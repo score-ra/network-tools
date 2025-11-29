@@ -1,0 +1,1 @@
+"""Hostname resolver module."""
