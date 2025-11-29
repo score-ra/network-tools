@@ -69,6 +69,10 @@ go.work
 Thumbs.db
 Desktop.ini
 ehthumbs.db
+nul
+
+# ===== IDE Workspace Files =====
+*.code-workspace
 
 # ===== Environment Files =====
 .env
