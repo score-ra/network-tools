@@ -8,12 +8,16 @@ from uuid import UUID
 
 @dataclass
 class Site:
-    """Site/organization entity."""
+    """Site entity matching ra_inventory schema."""
 
     id: UUID
+    organization_id: UUID
     name: str
     slug: str
-    description: Optional[str] = None
+    site_type: Optional[str] = None
+    is_primary: bool = False
+    is_active: bool = True
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -44,11 +48,12 @@ class Device:
     site_id: Optional[UUID] = None
     zone_id: Optional[UUID] = None
     network_id: Optional[UUID] = None
-    category_id: Optional[int] = None
+    category_id: Optional[UUID] = None
 
     # Core identification
     name: str = ""
     slug: str = ""
+    description: Optional[str] = None
     device_type: str = "unknown"
     manufacturer: Optional[str] = None
     model: Optional[str] = None
@@ -62,6 +67,7 @@ class Device:
 
     # Status
     status: str = "unknown"  # online, offline, unknown, maintenance
+    is_active: bool = True
 
     # Metadata
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -93,6 +99,7 @@ class Device:
             "category_id": self.category_id,
             "name": self.name,
             "slug": self.slug,
+            "description": self.description,
             "device_type": self.device_type,
             "manufacturer": self.manufacturer,
             "model": self.model,
@@ -102,6 +109,7 @@ class Device:
             "ip_address": self.ip_address,
             "hostname": self.hostname,
             "status": self.status,
+            "is_active": self.is_active,
             "metadata": self.metadata,
         }
 

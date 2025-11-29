@@ -1,11 +1,13 @@
 """Database queries for ra_inventory CRUD operations."""
 
+import json
 from typing import Optional
 from uuid import UUID
 
 import psycopg
 from psycopg import Connection
 from psycopg.rows import dict_row
+from psycopg.types.json import Json
 
 from network_tools.db.connection import get_connection, get_transaction
 from network_tools.db.models import Device, Network, Site
@@ -32,7 +34,8 @@ def get_site_by_slug(slug: str) -> Optional[Site]:
     with get_connection() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
-                "SELECT id, name, slug, description, created_at, updated_at "
+                "SELECT id, organization_id, name, slug, site_type, "
+                "is_primary, is_active, metadata, created_at, updated_at "
                 "FROM sites WHERE slug = %s",
                 (slug,),
             )
@@ -48,7 +51,8 @@ def get_site_by_id(site_id: UUID) -> Optional[Site]:
     with get_connection() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
-                "SELECT id, name, slug, description, created_at, updated_at "
+                "SELECT id, organization_id, name, slug, site_type, "
+                "is_primary, is_active, metadata, created_at, updated_at "
                 "FROM sites WHERE id = %s",
                 (site_id,),
             )
@@ -147,19 +151,23 @@ def get_device_by_mac(mac_address: str) -> Optional[Device]:
     Returns:
         Device or None.
     """
-    # Normalize MAC address (remove separators for comparison)
-    normalized = mac_address.upper().replace(":", "").replace("-", "")
+    # Normalize MAC address to lowercase colon-separated format for macaddr comparison
+    cleaned = mac_address.upper().replace(":", "").replace("-", "").replace(".", "")
+    if len(cleaned) < 12:
+        cleaned = cleaned.zfill(12)
+    # macaddr type uses lowercase
+    normalized = ":".join(cleaned[i:i+2] for i in range(0, 12, 2)).lower()
 
     with get_connection() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
-            # Use REPLACE to normalize in SQL for comparison
+            # Compare macaddr directly - PostgreSQL handles format normalization
             cur.execute(
                 "SELECT id, site_id, zone_id, network_id, category_id, "
                 "name, slug, device_type, manufacturer, model, serial_number, "
-                "firmware_version, mac_address, ip_address, hostname, status, "
-                "metadata, created_at, updated_at "
+                "firmware_version, mac_address::text, ip_address::text, hostname, status, "
+                "is_active, metadata, created_at, updated_at "
                 "FROM devices "
-                "WHERE UPPER(REPLACE(REPLACE(mac_address, ':', ''), '-', '')) = %s",
+                "WHERE mac_address = %s::macaddr",
                 (normalized,),
             )
             row = cur.fetchone()
@@ -218,21 +226,25 @@ def insert_device(device: Device, conn: Optional[Connection] = None) -> UUID:
     """
     def _insert(c: Connection) -> UUID:
         with c.cursor() as cur:
+            # Prepare insert dict with Json wrapper for metadata
+            insert_data = device.to_insert_dict()
+            insert_data["metadata"] = Json(insert_data.get("metadata") or {})
+
             cur.execute(
                 """
                 INSERT INTO devices (
                     site_id, zone_id, network_id, category_id,
-                    name, slug, device_type, manufacturer, model,
+                    name, slug, description, device_type, manufacturer, model,
                     serial_number, firmware_version, mac_address,
-                    ip_address, hostname, status, metadata
+                    ip_address, hostname, status, is_active, metadata
                 ) VALUES (
                     %(site_id)s, %(zone_id)s, %(network_id)s, %(category_id)s,
-                    %(name)s, %(slug)s, %(device_type)s, %(manufacturer)s, %(model)s,
+                    %(name)s, %(slug)s, %(description)s, %(device_type)s, %(manufacturer)s, %(model)s,
                     %(serial_number)s, %(firmware_version)s, %(mac_address)s,
-                    %(ip_address)s, %(hostname)s, %(status)s, %(metadata)s
+                    %(ip_address)s, %(hostname)s, %(status)s, %(is_active)s, %(metadata)s
                 ) RETURNING id
                 """,
-                device.to_insert_dict(),
+                insert_data,
             )
             result = cur.fetchone()
             device_id = result[0]
