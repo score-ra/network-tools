@@ -8,57 +8,66 @@
 ## 📊 Project Overview
 
 **Project**: network-tools
-**Description**: Networking utilities and tools for diagnosing network connectivity issues
+**Description**: Network device discovery and inventory management tools
 **Tech Stack**: Python 3.11+
 **Organization**: personal-ra
-**Status**: ✅ Initial Setup Complete
+**Status**: ✅ Sprint 1 Complete
 
 ---
 
 ## 📊 Current Work
 
 **Branch**: `master`
-**Status**: 🚀 Ready for First Sprint
-**Sprint**: Sprint 0 - Initial Setup
+**Status**: ✅ Sprint 1 Complete
+**Sprint**: Sprint 1 - Network Discovery
 **Priority**: P0
 
-**Goal**: Complete initial project setup and plan first sprint
+**Goal**: Implement automated network device discovery and populate inventory database
 
 ---
 
-## ✅ Setup Completed
+## ✅ Sprint 1 Completed
 
-### Initial Configuration
-1. ✅ Repository created from template
-2. ✅ Python tech stack initialized
-3. ✅ Dependencies configured (requirements.txt)
-4. ✅ Test framework configured (pytest.ini)
-5. ✅ Initial documentation generated
-6. ✅ Project structure set up
+### Device Discovery (2025-11-28)
+1. ✅ Created Device Discovery PRD (`docs/device-discovery-prd.md`)
+2. ✅ Created database-aligned templates for networks and devices
+3. ✅ Ran first network discovery via ARP scan
+4. ✅ Discovered 14 active devices on network
+5. ✅ Fixed database CIDR mismatch (/24 → /22)
+6. ✅ Fixed HomeSeer Server missing MAC address
+7. ✅ Inserted all 13 new devices into ra_inventory database
+
+### Database State
+- **Total Devices**: 17
+- **Devices with MAC**: 15
+- **Devices with IP**: 15
+- **Networks**: 5 (main-lan, main-wifi, iot-wifi, zwave, zigbee)
 
 ### Files Created/Modified
-- `README.md` - Updated with project info
-- `requirements.txt` - Python dependencies configured
-- `pytest.ini` - Test configuration
-- `.env.example` - Environment template
-- `docs/network-tools-prd.md` - Initial PRD
-- `src/` - Basic structure created
+- `docs/device-discovery-prd.md` - PRD for automated discovery
+- `docs/sprint-backlog-discovery-v1.md` - Sprint backlog with issues/insights
+- `templates/db-network-template.md` - Database network entry template
+- `templates/db-device-template.md` - Database device entry template
+- `organizations/ra-home-31-nt/networks/main-lan.md` - Network documentation
+- `organizations/ra-home-31-nt/devices/nest-wifi-router.md` - Router documentation
 
 ---
 
 ## 🔜 Next Actions
 
 ### Immediate Next Steps
-1. 🎯 Review and refine PRD (`docs/network-tools-prd.md`)
-2. 🎯 Create technical specification
-3. 🎯 Create Sprint 1 plan using `templates/sprint-planning-template.md`
-4. 🎯 Break down features into tickets
-5. 🎯 Create feature branch for first ticket
-6. 🎯 Start development!
+1. 🎯 Manually identify 7 Apple devices (phones, tablets, Macs, Apple TVs)
+2. 🎯 Investigate 3 unknown devices (IPs: .64, .68, .71)
+3. 🎯 Confirm HP device (.60) is a printer
+4. 🎯 Build OUI database integration for automatic manufacturer lookup
+5. 🎯 Create discovery CLI tool
 
-### MVP Context
-- **Problem**: Windows 11 PC on network not reachable despite showing active IP
-- **Solution**: Create diagnostic scripts to investigate connectivity
+### Backlog Items (from sprint-backlog-discovery-v1.md)
+- ND-003: OUI database integration
+- ND-004: Discovery comparison report
+- ND-005: CIDR validation
+- ND-006: Multi-protocol hostname resolution
+- ND-008: Discovery scan CLI
 
 ---
 
@@ -66,11 +75,32 @@
 
 - **Process**: [AI-Assisted Agile Process](docs/ai-assisted-agile-process.md)
 - **Claude Instructions**: [CLAUDE.md](CLAUDE.md)
-- **PRD**: [docs/network-tools-prd.md](docs/network-tools-prd.md)
+- **Discovery PRD**: [docs/device-discovery-prd.md](docs/device-discovery-prd.md)
+- **Sprint Backlog**: [docs/sprint-backlog-discovery-v1.md](docs/sprint-backlog-discovery-v1.md)
+- **Database Reference**: [ra-infrastructure DATABASE.md](../ra-infrastructure/docs/DATABASE.md)
 
 ---
 
 ## 🛠 Development Commands
+
+### Database Access
+```bash
+# Connect to database via Docker
+docker exec -it inventory-db psql -U inventory -d inventory
+
+# List devices
+docker exec inventory-db psql -U inventory -d inventory -c "SELECT name, ip_address, mac_address FROM devices ORDER BY ip_address;"
+```
+
+### Network Discovery
+```bash
+# View ARP table (Windows)
+arp -a
+
+# Get network config (Windows PowerShell)
+Get-NetIPConfiguration
+Get-NetAdapter
+```
 
 ### Testing
 ```bash
@@ -85,15 +115,8 @@ black src/ tests/     # Format code
 mypy src/             # Type check
 ```
 
-### Environment Setup
-```bash
-python -m venv venv
-venv\Scripts\activate  # Windows
-pip install -r requirements.txt
-```
-
 ---
 
-**📅 Last Updated**: 2025-11-25
-**🔄 Session**: #1 - Initial Setup
-**👤 Updated By**: Claude Code (project-setup skill)
+**📅 Last Updated**: 2025-11-28
+**🔄 Session**: #2 - Network Discovery Sprint
+**👤 Updated By**: Claude Code
