@@ -6,12 +6,12 @@ A collection of Python scripts and utilities for diagnosing network connectivity
 
 ## 🎯 What This Project Provides
 
-- **Network Diagnostics** - Scripts to investigate connectivity issues
+- **Network Discovery** - Automated scanning to find devices on your network
+- **Inventory Integration** - Direct read/write to ra_inventory PostgreSQL database
+- **OUI Lookup** - Automatic manufacturer identification from MAC addresses
+- **Interactive CLI** - Confirm, skip, or edit devices before adding to inventory
 - **Organization Management** - Document and track multiple network environments
-- **Device Inventory** - Track devices, IPs, and configurations per organization
 - **Windows 11 Focus** - Tools optimized for Windows network troubleshooting
-- **AI-Assisted Development** - Built using AI-Assisted Agile methodology
-- **Modular Design** - Easy to extend with new diagnostic tools
 
 ## 🚀 Quick Start
 
@@ -38,57 +38,127 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Usage
+### Environment Setup
+
+The tool connects to the ra_inventory PostgreSQL database. Set these environment variables:
 
 ```bash
-# Run tests
-pytest
+# Required
+set DB_PASSWORD=your_database_password
 
-# Run with coverage
-pytest --cov=src --cov-report=term
-
-# Code quality
-flake8 src/ tests/
-black src/ tests/
-mypy src/
+# Optional (defaults shown)
+set DB_HOST=localhost
+set DB_PORT=5432
+set DB_NAME=inventory
+set DB_USER=inventory
+set DEFAULT_NETWORK=192.168.68.0/22
 ```
+
+Or create a `.env` file (see `.env.example`).
+
+## 📡 Network Discovery
+
+### Check Database Connection
+
+```bash
+python -m network_tools status
+```
+
+Example output:
+```
+Database Status
+───────────────
+Connection: ✓ Connected
+Host: localhost:5432
+Database: inventory
+
+Inventory Summary
+─────────────────
+Sites: 1
+Networks: 5
+Devices: 17
+```
+
+### Discover Devices on Network
+
+```bash
+# Basic scan (interactive mode)
+python -m network_tools discover --network 192.168.68.0/24
+
+# Scan with site association
+python -m network_tools discover --network 192.168.68.0/24 --site ra-home-31-nt
+
+# Auto-confirm all new devices (non-interactive)
+python -m network_tools discover --network 192.168.68.0/24 --site ra-home-31-nt --yes
+
+# Use existing ARP table only (faster, no ping sweep)
+python -m network_tools discover --network 192.168.68.0/24 --no-ping
+```
+
+### Discovery Options
+
+| Option | Description |
+|--------|-------------|
+| `-n, --network` | Network CIDR to scan (required) |
+| `-s, --site` | Site slug for inventory association |
+| `-y, --yes` | Auto-confirm all new devices |
+| `--no-ping` | Skip ping sweep, use existing ARP table |
+
+### What Happens During Discovery
+
+1. **Scan** - ARP scan (and optional ping sweep) finds active hosts
+2. **Identify** - MAC addresses are looked up for manufacturer info
+3. **Compare** - Discovered devices are compared against inventory
+4. **Categorize** - Devices are marked as New, Existing, or IP Changed
+5. **Confirm** - Interactive prompt to confirm/skip/edit each new device
+6. **Insert** - Confirmed devices are added to the database
+
+### Discovery Output Categories
+
+| Category | Description |
+|----------|-------------|
+| **New** | Device not in inventory (by MAC address) |
+| **Existing** | Device already in inventory |
+| **IP Changed** | Known device with different IP address |
 
 ## 📁 Project Structure
 
 ```
 network-tools/
-├── organizations/          # Network environments
+├── src/
+│   └── network_tools/      # Main package
+│       ├── cli/            # Click CLI commands
+│       ├── db/             # Database connection, models, queries
+│       ├── scanner/        # ARP/ICMP network scanning
+│       ├── oui/            # MAC address manufacturer lookup
+│       ├── resolver/       # Hostname resolution
+│       └── config.py       # Configuration management
+├── organizations/          # Network environment documentation
 │   ├── sc-office/         # Co-working office network
-│   │   ├── README.md      # Organization overview
-│   │   └── devices/       # Device specifications
 │   └── ra-home-31-nt/     # Home network
-│       ├── README.md
-│       └── devices/
-├── src/                    # Source code
-│   ├── shared/            # Shared utilities
-│   │   ├── config.py     # Configuration
-│   │   └── utils.py      # Utility functions
-│   └── __init__.py
-├── scripts/                # Utility scripts
-│   ├── connect-rdp.ps1   # RDP connection script
-│   └── create-shortcut.ps1
-├── templates/              # Document templates
-│   ├── organization-template.md
-│   └── device-template.md
 ├── tests/                  # Test files
 ├── docs/                   # Documentation
-├── config/                 # Configuration files
-├── requirements.txt        # Python dependencies
-├── pytest.ini             # Test configuration
-├── CLAUDE.md              # Claude Code instructions
-└── README.md              # This file
+├── scripts/                # Utility scripts
+├── templates/              # Document templates
+├── data/                   # OUI database files
+└── requirements.txt        # Python dependencies
 ```
+
+## 🗄️ Database Dependency
+
+This tool integrates with the **ra_inventory** PostgreSQL database managed by the [ra-infrastructure](../ra-infrastructure) repository.
+
+- **Schema ownership**: ra-infrastructure (this repo cannot modify schema)
+- **Access level**: Direct READ/WRITE to device inventory
+- **Key tables**: `sites`, `networks`, `devices`
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for integration details.
 
 ## 📚 Documentation
 
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture and integration
+- **[docs/device-discovery-prd.md](docs/device-discovery-prd.md)** - Discovery feature requirements
 - **[CLAUDE.md](CLAUDE.md)** - Development guidelines for Claude Code
-- **[docs/PROCESS-OVERVIEW.md](docs/PROCESS-OVERVIEW.md)** - Development workflow
-- **[docs/network-tools-prd.md](docs/network-tools-prd.md)** - Product Requirements
 
 ## 🏢 Organizations
 
@@ -132,4 +202,4 @@ Personal project - All rights reserved
 
 **Organization**: personal-ra
 **Tech Stack**: Python 3.11+
-**Last Updated**: 2025-11-25
+**Last Updated**: 2025-11-30
