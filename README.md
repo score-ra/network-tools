@@ -2,15 +2,15 @@
 
 **Personal networking utilities and diagnostic tools**
 
-A collection of Python scripts and utilities for diagnosing network connectivity issues, particularly focused on troubleshooting unreachable hosts on local networks.
+A collection of Python scripts and utilities for network device discovery and asset management integration with Snipe-IT.
 
 ## 🎯 What This Project Provides
 
 - **Network Discovery** - Automated scanning to find devices on your network
-- **Inventory Integration** - Direct read/write to ra_inventory PostgreSQL database
+- **Snipe-IT Integration** - Sync discovered devices with Snipe-IT asset management
 - **OUI Lookup** - Automatic manufacturer identification from MAC addresses
 - **Interactive CLI** - Confirm, skip, or edit devices before adding to inventory
-- **Organization Management** - Document and track multiple network environments
+- **Asset Search** - Find assets by MAC or IP address
 - **Windows 11 Focus** - Tools optimized for Windows network troubleshooting
 
 ## 🚀 Quick Start
@@ -19,6 +19,7 @@ A collection of Python scripts and utilities for diagnosing network connectivity
 
 - Python 3.11+
 - Windows 11 (primary target)
+- Snipe-IT instance with API access
 - Network access to target hosts
 
 ### Installation
@@ -40,25 +41,26 @@ pip install -r requirements.txt
 
 ### Environment Setup
 
-The tool connects to the ra_inventory PostgreSQL database. Set these environment variables:
+Configure Snipe-IT API access. Copy `.env.example` to `.env`:
 
 ```bash
 # Required
-set DB_PASSWORD=your_database_password
+SNIPEIT_API_KEY=your_api_key_here
 
 # Optional (defaults shown)
-set DB_HOST=localhost
-set DB_PORT=5432
-set DB_NAME=inventory
-set DB_USER=inventory
-set DEFAULT_NETWORK=192.168.68.0/22
+SNIPEIT_BASE_URL=http://localhost:8082/api/v1
+SNIPEIT_TIMEOUT=30
+SNIPEIT_NETWORK_CATEGORY_ID=4
+SNIPEIT_DEFAULT_STATUS_ID=2
+SNIPEIT_DEFAULT_MODEL_ID=25
+DEFAULT_NETWORK=192.168.68.0/22
 ```
 
-Or create a `.env` file (see `.env.example`).
+**Note**: Set `SNIPEIT_DEFAULT_MODEL_ID` to a valid model ID in your Snipe-IT instance (e.g., "Unknown Network Device" model).
 
-## 📡 Network Discovery
+## 📡 CLI Commands
 
-### Check Database Connection
+### Check Snipe-IT Connection
 
 ```bash
 python -m network_tools status
@@ -66,17 +68,17 @@ python -m network_tools status
 
 Example output:
 ```
-Database Status
-───────────────
-Connection: ✓ Connected
-Host: localhost:5432
-Database: inventory
+Snipe-IT Status
 
-Inventory Summary
-─────────────────
-Sites: 1
-Networks: 5
-Devices: 17
+OK Connected to http://localhost:8082/api/v1
+
+Asset Summary
+┏━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Category       ┃ Count ┃
+┡━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ Total Assets   │    50 │
+│ Network Assets │    20 │
+└────────────────┴───────┘
 ```
 
 ### Discover Devices on Network
@@ -85,14 +87,21 @@ Devices: 17
 # Basic scan (interactive mode)
 python -m network_tools discover --network 192.168.68.0/24
 
-# Scan with site association
-python -m network_tools discover --network 192.168.68.0/24 --site ra-home-31-nt
-
 # Auto-confirm all new devices (non-interactive)
-python -m network_tools discover --network 192.168.68.0/24 --site ra-home-31-nt --yes
+python -m network_tools discover --network 192.168.68.0/24 --yes
 
 # Use existing ARP table only (faster, no ping sweep)
 python -m network_tools discover --network 192.168.68.0/24 --no-ping
+```
+
+### Search for Assets
+
+```bash
+# Search by MAC address
+python -m network_tools search --mac AA:BB:CC:DD:EE:FF
+
+# Search by IP address
+python -m network_tools search --ip 192.168.68.100
 ```
 
 ### Discovery Options
@@ -100,18 +109,18 @@ python -m network_tools discover --network 192.168.68.0/24 --no-ping
 | Option | Description |
 |--------|-------------|
 | `-n, --network` | Network CIDR to scan (required) |
-| `-s, --site` | Site slug for inventory association |
 | `-y, --yes` | Auto-confirm all new devices |
 | `--no-ping` | Skip ping sweep, use existing ARP table |
 
 ### What Happens During Discovery
 
-1. **Scan** - ARP scan (and optional ping sweep) finds active hosts
-2. **Identify** - MAC addresses are looked up for manufacturer info
-3. **Compare** - Discovered devices are compared against inventory
-4. **Categorize** - Devices are marked as New, Existing, or IP Changed
-5. **Confirm** - Interactive prompt to confirm/skip/edit each new device
-6. **Insert** - Confirmed devices are added to the database
+1. **Connect** - Verify Snipe-IT API connectivity
+2. **Scan** - ARP scan (and optional ping sweep) finds active hosts
+3. **Identify** - MAC addresses are looked up for manufacturer info
+4. **Compare** - Discovered devices are compared against Snipe-IT inventory
+5. **Categorize** - Devices are marked as New, Existing, or IP Changed
+6. **Confirm** - Interactive prompt to confirm/skip each new device
+7. **Sync** - Confirmed devices are added to Snipe-IT via API
 
 ### Discovery Output Categories
 
@@ -128,36 +137,33 @@ network-tools/
 ├── src/
 │   └── network_tools/      # Main package
 │       ├── cli/            # Click CLI commands
-│       ├── db/             # Database connection, models, queries
+│       ├── snipeit/        # Snipe-IT API client
 │       ├── scanner/        # ARP/ICMP network scanning
 │       ├── oui/            # MAC address manufacturer lookup
-│       ├── resolver/       # Hostname resolution
 │       └── config.py       # Configuration management
 ├── organizations/          # Network environment documentation
-│   ├── sc-office/         # Co-working office network
-│   └── ra-home-31-nt/     # Home network
 ├── tests/                  # Test files
 ├── docs/                   # Documentation
-├── scripts/                # Utility scripts
 ├── templates/              # Document templates
 ├── data/                   # OUI database files
 └── requirements.txt        # Python dependencies
 ```
 
-## 🗄️ Database Dependency
+## 🔗 Snipe-IT Integration
 
-This tool integrates with the **ra_inventory** PostgreSQL database managed by the [ra-infrastructure](../ra-infrastructure) repository.
+This tool integrates with **Snipe-IT** asset management via REST API.
 
-- **Schema ownership**: ra-infrastructure (this repo cannot modify schema)
-- **Access level**: Direct READ/WRITE to device inventory
-- **Key tables**: `sites`, `networks`, `devices`
+- **Connection**: HTTPS REST API with Bearer token authentication
+- **Operations**: Query, create, and update hardware assets
+- **Custom Fields**: Uses MAC Address and IP Address custom fields
+- **Categories**: Discovers devices in the "Network" category
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for integration details.
+See [docs/snipeit-integration-prd.md](docs/snipeit-integration-prd.md) for detailed requirements.
 
 ## 📚 Documentation
 
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture and integration
-- **[docs/device-discovery-prd.md](docs/device-discovery-prd.md)** - Discovery feature requirements
+- **[docs/snipeit-integration-prd.md](docs/snipeit-integration-prd.md)** - Snipe-IT integration requirements
+- **[docs/sprint-backlog-snipeit.md](docs/sprint-backlog-snipeit.md)** - Sprint backlog
 - **[CLAUDE.md](CLAUDE.md)** - Development guidelines for Claude Code
 
 ## 🏢 Organizations
@@ -184,7 +190,7 @@ pytest
 pytest --cov=src --cov-report=term-missing
 
 # Run specific test file
-pytest tests/test_module.py
+pytest tests/test_snipeit/test_client.py
 ```
 
 ## ✅ Development Standards
@@ -201,5 +207,5 @@ Personal project - All rights reserved
 ---
 
 **Organization**: personal-ra
-**Tech Stack**: Python 3.11+
-**Last Updated**: 2025-11-30
+**Tech Stack**: Python 3.11+, Snipe-IT API, Click
+**Last Updated**: 2025-12-06

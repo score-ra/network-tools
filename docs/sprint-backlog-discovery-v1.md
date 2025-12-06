@@ -1,8 +1,12 @@
 # Sprint Backlog: Network Discovery v1 Test Run
 
+> **📜 HISTORICAL**: This sprint was part of the original database-integrated implementation.
+> The system has since been migrated to Snipe-IT API integration.
+> See [sprint-backlog-snipeit.md](sprint-backlog-snipeit.md) for current sprint.
+
 **Date**: 2025-11-28
 **Test Run**: First automated network discovery
-**Status**: Complete
+**Status**: Complete (Historical)
 
 ---
 

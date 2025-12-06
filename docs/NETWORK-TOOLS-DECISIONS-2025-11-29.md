@@ -1,8 +1,13 @@
 # Network-Tools Architectural Decisions
 
+> **⚠️ SUPERSEDED**: This decision document has been superseded.
+> The database integration approach was replaced with Snipe-IT API integration in December 2025.
+> See [snipeit-integration-prd.md](snipeit-integration-prd.md) for current architecture.
+> This document is retained for historical reference only.
+
 **Date**: 2025-11-29
 **Context**: Repo consolidation review (ra-infrastructure, network-tools, ra-home-automation)
-**Status**: Approved - Ready for PRD/Sprint Plan Updates
+**Status**: Superseded (December 2025)
 
 ---
 

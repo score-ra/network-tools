@@ -1,7 +1,7 @@
 """Configuration management for network-tools."""
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -17,12 +17,16 @@ class Config:
     env: str = "development"
     log_level: str = "INFO"
 
-    # Database
-    db_host: str = "localhost"
-    db_port: int = 5432
-    db_name: str = "inventory"
-    db_user: str = "inventory"
-    db_password: str = ""
+    # Snipe-IT API
+    snipeit_base_url: str = "http://localhost:8082/api/v1"
+    snipeit_api_key: str = ""
+    snipeit_timeout: int = 30
+    snipeit_retry_count: int = 3
+
+    # Snipe-IT default IDs
+    snipeit_network_category_id: int = 4
+    snipeit_default_status_id: int = 2  # Ready to Deploy
+    snipeit_default_model_id: int = 0  # Must be configured
 
     # Network scanning
     default_network: str = "192.168.68.0/22"
@@ -32,14 +36,6 @@ class Config:
     # OUI database
     oui_database_path: str = "./data/oui.txt"
 
-    @property
-    def db_dsn(self) -> str:
-        """Get database connection string."""
-        return (
-            f"postgresql://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        )
-
     @classmethod
     def from_env(cls) -> "Config":
         """Load configuration from environment variables."""
@@ -47,11 +43,32 @@ class Config:
             app_name=os.getenv("APP_NAME", cls.app_name),
             env=os.getenv("ENV", cls.env),
             log_level=os.getenv("LOG_LEVEL", cls.log_level),
-            db_host=os.getenv("DB_HOST", cls.db_host),
-            db_port=int(os.getenv("DB_PORT", str(cls.db_port))),
-            db_name=os.getenv("DB_NAME", cls.db_name),
-            db_user=os.getenv("DB_USER", cls.db_user),
-            db_password=os.getenv("DB_PASSWORD", cls.db_password),
+            # Snipe-IT API
+            snipeit_base_url=os.getenv("SNIPEIT_BASE_URL", cls.snipeit_base_url),
+            snipeit_api_key=os.getenv("SNIPEIT_API_KEY", cls.snipeit_api_key),
+            snipeit_timeout=int(
+                os.getenv("SNIPEIT_TIMEOUT", str(cls.snipeit_timeout))
+            ),
+            snipeit_retry_count=int(
+                os.getenv("SNIPEIT_RETRY_COUNT", str(cls.snipeit_retry_count))
+            ),
+            # Snipe-IT default IDs
+            snipeit_network_category_id=int(
+                os.getenv(
+                    "SNIPEIT_NETWORK_CATEGORY_ID", str(cls.snipeit_network_category_id)
+                )
+            ),
+            snipeit_default_status_id=int(
+                os.getenv(
+                    "SNIPEIT_DEFAULT_STATUS_ID", str(cls.snipeit_default_status_id)
+                )
+            ),
+            snipeit_default_model_id=int(
+                os.getenv(
+                    "SNIPEIT_DEFAULT_MODEL_ID", str(cls.snipeit_default_model_id)
+                )
+            ),
+            # Network scanning
             default_network=os.getenv("DEFAULT_NETWORK", cls.default_network),
             scan_timeout=int(os.getenv("SCAN_TIMEOUT", str(cls.scan_timeout))),
             scan_concurrency=int(

@@ -1,122 +1,113 @@
-# 🚀 Start Here - Session Context
+# Start Here - Session Context
 
-> **📖 New to this project?** Read [PROCESS-OVERVIEW.md](docs/PROCESS-OVERVIEW.md) first!
-> **🤖 Claude Code?** Read [CLAUDE.md](CLAUDE.md) for development guidelines!
+> **New to this project?** Read [PROCESS-OVERVIEW.md](docs/PROCESS-OVERVIEW.md) first!
+> **Claude Code?** Read [CLAUDE.md](CLAUDE.md) for development guidelines!
 
 ---
 
-## 📊 Project Overview
+## Project Overview
 
 **Project**: network-tools
-**Description**: Network device discovery and inventory management tools
-**Tech Stack**: Python 3.11+
+**Description**: Network device discovery with Snipe-IT asset management integration
+**Tech Stack**: Python 3.11+, Snipe-IT API, Click CLI
 **Organization**: personal-ra
-**Status**: ✅ Sprint 1 Complete
+**Status**: Active - Snipe-IT Integration Complete
 
 ---
 
-## 📊 Current Work
+## Current State
 
 **Branch**: `master`
-**Status**: ✅ Sprint 1 Complete
-**Sprint**: Sprint 1 - Network Discovery
-**Priority**: P0
-
-**Goal**: Implement automated network device discovery and populate inventory database
+**Status**: Stable
+**Last Sprint**: Sprint 2 - Snipe-IT API Integration (Complete)
 
 ---
 
-## ✅ Sprint 1 Completed
+## Sprint 2 Completed (2025-12-06)
+
+### All Tasks Complete ✓
+1. ✓ Created Snipe-IT Integration PRD (`docs/snipeit-integration-prd.md`)
+2. ✓ Created Sprint Backlog (`docs/sprint-backlog-snipeit.md`)
+3. ✓ Removed database module (`src/network_tools/db/`)
+4. ✓ Created Snipe-IT API client module (`src/network_tools/snipeit/`)
+5. ✓ Updated config.py for Snipe-IT settings
+6. ✓ Updated CLI commands (`discover`, `status`, new `search`)
+7. ✓ Wrote tests for Snipe-IT client (65 tests passing)
+8. ✓ Updated dependencies (replaced psycopg with requests)
+
+### Key Files Created
+- `src/network_tools/snipeit/client.py` - API client
+- `src/network_tools/snipeit/models.py` - Asset, DiscoveredDevice models
+- `src/network_tools/snipeit/exceptions.py` - Custom exceptions
+- `tests/test_snipeit/` - Client and model tests
+
+---
+
+## Sprint 1 Completed (Archive)
 
 ### Device Discovery (2025-11-28)
-1. ✅ Created Device Discovery PRD (`docs/device-discovery-prd.md`)
-2. ✅ Created database-aligned templates for networks and devices
-3. ✅ Ran first network discovery via ARP scan
-4. ✅ Discovered 14 active devices on network
-5. ✅ Fixed database CIDR mismatch (/24 → /22)
-6. ✅ Fixed HomeSeer Server missing MAC address
-7. ✅ Inserted all 13 new devices into ra_inventory database
-
-### Database State
-- **Total Devices**: 17
-- **Devices with MAC**: 15
-- **Devices with IP**: 15
-- **Networks**: 5 (main-lan, main-wifi, iot-wifi, zwave, zigbee)
-
-### Files Created/Modified
-- `docs/device-discovery-prd.md` - PRD for automated discovery
-- `docs/sprint-backlog-discovery-v1.md` - Sprint backlog with issues/insights
-- `templates/db-network-template.md` - Database network entry template
-- `templates/db-device-template.md` - Database device entry template
-- `organizations/ra-home-31-nt/networks/main-lan.md` - Network documentation
-- `organizations/ra-home-31-nt/devices/nest-wifi-router.md` - Router documentation
+- Created Device Discovery PRD
+- Ran first network discovery via ARP scan
+- Discovered 14 active devices on network
 
 ---
 
-## 🔜 Next Actions
-
-### Immediate Next Steps
-1. 🎯 Manually identify 7 Apple devices (phones, tablets, Macs, Apple TVs)
-2. 🎯 Investigate 3 unknown devices (IPs: .64, .68, .71)
-3. 🎯 Confirm HP device (.60) is a printer
-4. 🎯 Build OUI database integration for automatic manufacturer lookup
-5. 🎯 Create discovery CLI tool
-
-### Backlog Items (from sprint-backlog-discovery-v1.md)
-- ND-003: OUI database integration
-- ND-004: Discovery comparison report
-- ND-005: CIDR validation
-- ND-006: Multi-protocol hostname resolution
-- ND-008: Discovery scan CLI
-
----
-
-## 📚 Key Documentation
+## Key Documentation
 
 - **Process**: [AI-Assisted Agile Process](docs/ai-assisted-agile-process.md)
 - **Claude Instructions**: [CLAUDE.md](CLAUDE.md)
-- **Discovery PRD**: [docs/device-discovery-prd.md](docs/device-discovery-prd.md)
-- **Sprint Backlog**: [docs/sprint-backlog-discovery-v1.md](docs/sprint-backlog-discovery-v1.md)
-- **Database Reference**: [ra-infrastructure DATABASE.md](../ra-infrastructure/docs/DATABASE.md)
+- **Snipe-IT PRD**: [docs/snipeit-integration-prd.md](docs/snipeit-integration-prd.md)
+- **Sprint Backlog**: [docs/sprint-backlog-snipeit.md](docs/sprint-backlog-snipeit.md)
+- **Snipe-IT API Guide**: [snipeit-asset-management API Guide](../snipeit-asset-management/docs/snipeit-api-integration-guide.md)
 
 ---
 
-## 🛠 Development Commands
+## CLI Commands
 
-### Database Access
 ```bash
-# Connect to database via Docker
-docker exec -it inventory-db psql -U inventory -d inventory
+# Check Snipe-IT connection status
+python -m network_tools status
 
-# List devices
-docker exec inventory-db psql -U inventory -d inventory -c "SELECT name, ip_address, mac_address FROM devices ORDER BY ip_address;"
+# Discover devices on network and sync to Snipe-IT
+python -m network_tools discover --network 192.168.68.0/24
+
+# Auto-confirm all new devices (non-interactive)
+python -m network_tools discover -n 192.168.68.0/24 -y
+
+# Search for asset by MAC or IP
+python -m network_tools search --mac AA:BB:CC:DD:EE:FF
+python -m network_tools search --ip 192.168.68.100
+
+# Show version
+python -m network_tools --version
 ```
 
-### Network Discovery
-```bash
-# View ARP table (Windows)
-arp -a
+---
 
-# Get network config (Windows PowerShell)
-Get-NetIPConfiguration
-Get-NetAdapter
-```
+## Testing
 
-### Testing
 ```bash
 pytest                              # Run all tests
 pytest --cov=src --cov-report=term  # Run with coverage
 ```
 
-### Code Quality
-```bash
-flake8 src/ tests/    # Run linter
-black src/ tests/     # Format code
-mypy src/             # Type check
+---
+
+## Environment Setup
+
+Copy `.env.example` to `.env` and configure:
+```ini
+SNIPEIT_BASE_URL=http://localhost:8082/api/v1
+SNIPEIT_API_KEY=your_api_key_here
+SNIPEIT_TIMEOUT=30
+SNIPEIT_NETWORK_CATEGORY_ID=4
+SNIPEIT_DEFAULT_STATUS_ID=2
+SNIPEIT_DEFAULT_MODEL_ID=25
 ```
+
+**Note**: Set `SNIPEIT_DEFAULT_MODEL_ID` to a valid model ID in your Snipe-IT instance.
 
 ---
 
-**📅 Last Updated**: 2025-11-28
-**🔄 Session**: #2 - Network Discovery Sprint
-**👤 Updated By**: Claude Code
+**Last Updated**: 2025-12-06
+**Updated By**: Claude Code

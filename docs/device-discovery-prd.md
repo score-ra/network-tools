@@ -1,10 +1,14 @@
 # Product Requirement Document (PRD)
 
+> **⚠️ SUPERSEDED**: This PRD has been replaced by [snipeit-integration-prd.md](snipeit-integration-prd.md).
+> The database integration approach described here was replaced with Snipe-IT API integration in December 2025.
+> This document is retained for historical reference only.
+
 **Project Name**: Automated Network Device Discovery
 **Version**: 1.2
 **Date**: 2025-11-29
 **Owner**: personal-ra
-**Status**: Draft
+**Status**: Superseded
 
 ---
 

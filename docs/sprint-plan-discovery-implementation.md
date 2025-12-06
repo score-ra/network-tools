@@ -1,8 +1,12 @@
 # Sprint Plan: Network Discovery Implementation
 
+> **⚠️ SUPERSEDED**: This sprint plan was for the original database-integrated implementation.
+> The system has since been migrated to Snipe-IT API integration.
+> See [sprint-backlog-snipeit.md](sprint-backlog-snipeit.md) for current sprint.
+
 **Date**: 2025-11-29
 **Sprint Goal**: Build foundational network discovery tool with interactive CLI
-**PRD Reference**: [device-discovery-prd.md](device-discovery-prd.md) v1.2
+**PRD Reference**: [device-discovery-prd.md](device-discovery-prd.md) v1.2 (superseded)
 
 ---
 

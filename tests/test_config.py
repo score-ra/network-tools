@@ -18,33 +18,18 @@ class TestConfig:
         assert config.app_name == "network-tools"
         assert config.env == "development"
         assert config.log_level == "INFO"
-        assert config.db_host == "localhost"
-        assert config.db_port == 5432
-        assert config.db_name == "inventory"
-        assert config.db_user == "inventory"
-        assert config.db_password == ""
+        # Snipe-IT defaults
+        assert config.snipeit_base_url == "http://localhost:8082/api/v1"
+        assert config.snipeit_api_key == ""
+        assert config.snipeit_timeout == 30
+        assert config.snipeit_retry_count == 3
+        assert config.snipeit_network_category_id == 4
+        assert config.snipeit_default_status_id == 2
+        assert config.snipeit_default_model_id == 0
+        # Network defaults
         assert config.default_network == "192.168.68.0/22"
         assert config.scan_timeout == 5
         assert config.scan_concurrency == 50
-
-    def test_db_dsn_property(self):
-        """Test database DSN generation."""
-        config = Config(
-            db_host="testhost",
-            db_port=5433,
-            db_name="testdb",
-            db_user="testuser",
-            db_password="testpass",
-        )
-
-        expected = "postgresql://testuser:testpass@testhost:5433/testdb"
-        assert config.db_dsn == expected
-
-    def test_db_dsn_empty_password(self):
-        """Test DSN with empty password."""
-        config = Config(db_password="")
-
-        assert "@localhost:5432/inventory" in config.db_dsn
 
     def test_from_env_defaults(self):
         """Test from_env uses defaults when env vars not set."""
@@ -52,19 +37,21 @@ class TestConfig:
             config = Config.from_env()
 
             assert config.app_name == "network-tools"
-            assert config.db_host == "localhost"
+            assert config.snipeit_base_url == "http://localhost:8082/api/v1"
 
-    def test_from_env_with_values(self):
-        """Test from_env reads environment variables."""
+    def test_from_env_with_snipeit_values(self):
+        """Test from_env reads Snipe-IT environment variables."""
         env_vars = {
             "APP_NAME": "test-app",
             "ENV": "production",
             "LOG_LEVEL": "DEBUG",
-            "DB_HOST": "db.example.com",
-            "DB_PORT": "5433",
-            "DB_NAME": "prod_inventory",
-            "DB_USER": "prod_user",
-            "DB_PASSWORD": "secret123",
+            "SNIPEIT_BASE_URL": "http://snipeit.example.com/api/v1",
+            "SNIPEIT_API_KEY": "test_api_key_123",
+            "SNIPEIT_TIMEOUT": "60",
+            "SNIPEIT_RETRY_COUNT": "5",
+            "SNIPEIT_NETWORK_CATEGORY_ID": "10",
+            "SNIPEIT_DEFAULT_STATUS_ID": "3",
+            "SNIPEIT_DEFAULT_MODEL_ID": "25",
             "DEFAULT_NETWORK": "10.0.0.0/8",
             "SCAN_TIMEOUT": "10",
             "SCAN_CONCURRENCY": "100",
@@ -77,11 +64,15 @@ class TestConfig:
             assert config.app_name == "test-app"
             assert config.env == "production"
             assert config.log_level == "DEBUG"
-            assert config.db_host == "db.example.com"
-            assert config.db_port == 5433
-            assert config.db_name == "prod_inventory"
-            assert config.db_user == "prod_user"
-            assert config.db_password == "secret123"
+            # Snipe-IT config
+            assert config.snipeit_base_url == "http://snipeit.example.com/api/v1"
+            assert config.snipeit_api_key == "test_api_key_123"
+            assert config.snipeit_timeout == 60
+            assert config.snipeit_retry_count == 5
+            assert config.snipeit_network_category_id == 10
+            assert config.snipeit_default_status_id == 3
+            assert config.snipeit_default_model_id == 25
+            # Network config
             assert config.default_network == "10.0.0.0/8"
             assert config.scan_timeout == 10
             assert config.scan_concurrency == 100

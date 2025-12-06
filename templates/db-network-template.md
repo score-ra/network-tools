@@ -1,5 +1,8 @@
 # Network Entry Template
 
+> **⚠️ OBSOLETE**: This template was for the ra_inventory PostgreSQL database.
+> network-tools now uses Snipe-IT API integration instead.
+
 > **Purpose**: Template for adding a network to the `ra_inventory.networks` table.
 > **Schema Owner**: ra-infrastructure repository
 > **Reference**: [DATABASE.md](file:///C:/Users/ranand/workspace/personal/software/ra-infrastructure/docs/DATABASE.md)
